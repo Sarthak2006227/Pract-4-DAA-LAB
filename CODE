@@ -1,0 +1,93 @@
+#include <stdio.h>
+
+typedef struct {
+    int total;
+    int from;
+    int to;
+} Segment;
+
+Segment Find_Max_Segment(int arr[], int left, int right, int limit) {
+    Segment invalid = {0, -1, -1};
+
+    if (left > right) return invalid;
+
+    if (left == right) {
+        if (arr[left] <= limit) {
+            return (Segment){arr[left], left, right};
+        } else {
+            return invalid;
+        }
+    }
+
+    int middle = (left + right) / 2;
+
+    Segment segLeft = Find_Max_Segment(arr, left, middle, limit);
+    Segment segRight = Find_Max_Segment(arr, middle + 1, right, limit);
+
+    int tempSum = 0, maxLeft = 0, startIdx = middle;
+    for (int i = middle; i >= left; i--) {
+        tempSum += arr[i];
+        if (tempSum <= limit && tempSum > maxLeft) {
+            maxLeft = tempSum;
+            startIdx = i;
+        }
+    }
+
+    tempSum = 0;
+    int maxRight = 0, endIdx = middle + 1;
+    for (int j = middle + 1; j <= right; j++) {
+        tempSum += arr[j];
+        if (tempSum <= limit && tempSum > maxRight) {
+            maxRight = tempSum;
+            endIdx = j;
+        }
+    }
+
+    int combinedSum = maxLeft + maxRight;
+    Segment segCross = {0, -1, -1};
+    if (combinedSum <= limit) {
+        segCross.total = combinedSum;
+        segCross.from = startIdx;
+        segCross.to = endIdx;
+    }
+
+    if (segLeft.total >= segRight.total && segLeft.total >= segCross.total)
+        return segLeft;
+    else if (segRight.total >= segLeft.total && segRight.total >= segCross.total)
+        return segRight;
+    else
+        return segCross;
+}
+
+int main() {
+    int size;
+
+    printf("Size of Resource Array: ");
+    scanf("%d", &size);
+
+    if (size <= 0) {
+        printf("Empty array. Exiting.\n");
+        return 0;
+    }
+
+    int resources[size];
+    printf("Input the Resource Array:\n");
+    for (int i = 0; i < size; i++) {
+        printf("Element %d: ", i + 1);
+        scanf("%d", &resources[i]);
+    }
+
+    int maxAllowed;
+    printf("Enter constraint limit: ");
+    scanf("%d", &maxAllowed);
+
+    Segment answer = Find_Max_Segment(resources, 0, size - 1, maxAllowed);
+
+    if (answer.total == 0) {
+        printf("No suitable subarray found.\n");
+    } else {
+        printf("Maximum Sum = %d, between indices %d and %d\n", answer.total, answer.from, answer.to);
+    }
+
+    return 0;
+}
